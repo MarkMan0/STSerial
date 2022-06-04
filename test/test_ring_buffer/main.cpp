@@ -125,6 +125,36 @@ void test_num_free_occupied() {
 }
 
 
+void test_reserving() {
+  RingBuffer<uint8_t, 10> buff;
+
+  buff.reserve_n(3);
+  TEST_ASSERT_FALSE(buff.is_empty());
+  TEST_ASSERT_EQUAL(3, buff.get_num_occupied());
+
+  uint8_t data[] = { 0, 1, 2 };
+  buff.push_to_reserved(data, 3);
+  TEST_ASSERT_EQUAL(0, buff.pop());
+  TEST_ASSERT_EQUAL(1, buff.pop());
+  TEST_ASSERT_EQUAL(2, buff.pop());
+  TEST_ASSERT_TRUE(buff.is_empty());
+
+  buff.reserve_n(9);
+  uint8_t data2[] = { 6, 7, 8, 0, 1, 2, 3, 4, 5 };
+  buff.push_to_reserved(data2, 10);
+
+  buff.pop();
+  buff.pop();
+  buff.pop();
+
+  buff.reserve_n(3);
+  buff.push_to_reserved(data2, 3);
+
+  for (int i = 0; i < 9; ++i) {
+    TEST_ASSERT_EQUAL(i, buff.pop());
+  }
+}
+
 
 int main() {
   HAL_Init();
@@ -139,6 +169,7 @@ int main() {
   RUN_TEST(test_overflow);
   RUN_TEST(test_peek);
   RUN_TEST(test_num_free_occupied);
+  RUN_TEST(test_reserving);
 
   HAL_Delay(500);
   UNITY_END();

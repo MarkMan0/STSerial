@@ -10,6 +10,7 @@ private:
   std::array<data_t, N> buff_;
   volatile uint16_t head_{}, tail_{};
   bool is_full_ = false;
+  uint16_t reserve_index_ = 0;
 
 public:
   void push(const data_t& d) {
@@ -53,5 +54,24 @@ public:
 
   uint16_t get_num_free() const {
     return N - get_num_occupied();
+  }
+
+  bool reserve_n(uint16_t num) {
+    if (num > get_num_free()) {
+      return false;
+    }
+    reserve_index_ = head_;
+
+    head_ += num;
+    head_ = head_ % N;
+
+    return true;
+  }
+
+  void push_to_reserved(const data_t* data, uint16_t len) {
+    for (uint16_t i = 0; i < len; ++i) {
+      buff_[reserve_index_] = data[i];
+      reserve_index_ = (reserve_index_ + 1) % N;
+    }
   }
 };
