@@ -1,6 +1,7 @@
 #include "unity_config.h"
-// #include <stm32f3xx_hal.h>
 #include "../src/main.h"
+#include <cstdio>
+#include <unity.h>
 
 static UART_HandleTypeDef UartHandle;
 
@@ -56,6 +57,26 @@ void unityOutputComplete() {
   __HAL_RCC_USART2_CLK_DISABLE();
   __HAL_RCC_GPIOA_CLK_DISABLE();
 }
+
+
+
+void SysTick_Handler(void) {
+  HAL_IncTick();
+}
+
+void Error_Handler() {
+  while (1)
+    ;
+}
+
+void assert_failed(uint8_t* file, uint32_t line) {
+  char buff[40];
+  snprintf(buff, 40, "ASSERT: %s  :: %d", file, static_cast<int>(line));
+  TEST_MESSAGE(buff);
+  return;
+}
+
+
 
 
 #ifdef __cplusplus

@@ -1,14 +1,12 @@
-
-#include "../src/main.h"
-#include "../src/pin_api.h"
+#include "../../src/main.h"
+#include "../../src/pin_api.h"
 #include <unity.h>
-#include "test_pin_api.h"
 
+void setUp(void) {
+}
+void tearDown(void) {
+}
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void test_port_lookup(void) {
   using pin_api::pin_name_to_port;
@@ -96,6 +94,21 @@ void test_multiple_pins() {
 }
 
 
-#ifdef __cplusplus
+
+int main() {
+  HAL_Init();  // initialize the HAL library
+  HAL_Delay(1000);
+
+  UNITY_BEGIN();
+  RUN_TEST(test_port_lookup);
+  RUN_TEST(test_num_lookup);
+  RUN_TEST(test_pin_is_available);
+  RUN_TEST(test_pin_io);
+  RUN_TEST(test_pin_toggle);
+  RUN_TEST(test_multiple_pins);
+
+  UNITY_END();  // stop unit testing
+
+  while (1) {
+  }
 }
-#endif

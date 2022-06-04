@@ -122,7 +122,7 @@ namespace pin_api {
     }
   }
 
-  void init_clock_for_gpio(const pin_name pin) {
+  inline void init_clock_for_gpio(const pin_name pin) {
     switch (pin / 16) {
 #ifdef GPIOA_BASE
       case 0:
