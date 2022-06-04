@@ -1,5 +1,6 @@
 
 #include "main.h"
+#include "pin_api.h"
 
 void SystemClock_Config(void);
 
@@ -9,7 +10,16 @@ int main(void) {
   HAL_Init();
   SystemClock_Config();
 
+  constexpr auto led_pin = PB3;
+  pin_mode(led_pin, pin_mode_t::OUT_PP);
+
   while (1) {
+    toggle_pin(led_pin);
+#ifdef NDEBUG
+    HAL_Delay(500);
+#else
+    HAL_Delay(2000);
+#endif
   }
 }
 
