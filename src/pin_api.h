@@ -1,6 +1,5 @@
 #pragma once
 
-#include <stm32f3xx_hal_gpio.h>
 #include <cassert>
 #include <array>
 
@@ -84,9 +83,9 @@ namespace pin_api {
 #endif
     };
 
-    assert(pin / 16 < table.size());
+    assert_param(pin / 16 < table.size());
     GPIO_TypeDef* ret = table[pin / 16];
-    assert(ret != nullptr);
+    assert_param(ret != nullptr);
 
     return ret;
   }
@@ -169,55 +168,57 @@ namespace pin_api {
   }
 
   inline void init_pin_input(const pin_name pin, const pin_mode_t mode) {
-    static GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
-                                  .Mode = GPIO_MODE_INPUT,
-                                  .Pull = get_pull_type(mode),
-                                  .Speed = GPIO_SPEED_FREQ_MEDIUM,
-                                  .Alternate = 0 };
+    GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
+                           .Mode = GPIO_MODE_INPUT,
+                           .Pull = get_pull_type(mode),
+                           .Speed = GPIO_SPEED_FREQ_MEDIUM,
+                           .Alternate = 0 };
 
     init_clock_for_gpio(pin);
     HAL_GPIO_Init(pin_name_to_port(pin), &gpio);
   }
 
   inline void init_pin_output_pp(const pin_name pin, const pin_mode_t mode) {
-    static GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
-                                  .Mode = GPIO_MODE_OUTPUT_PP,
-                                  .Pull = GPIO_NOPULL,
-                                  .Speed = GPIO_SPEED_FREQ_MEDIUM,
-                                  .Alternate = 0 };
+    const auto port = pin_name_to_port(pin);
+    const auto num = pin_name_to_num(pin);
+
+    GPIO_InitTypeDef gpio{
+      .Pin = num, .Mode = GPIO_MODE_OUTPUT_PP, .Pull = GPIO_NOPULL, .Speed = GPIO_SPEED_FREQ_MEDIUM, .Alternate = 0
+    };
 
     init_clock_for_gpio(pin);
-    HAL_GPIO_Init(pin_name_to_port(pin), &gpio);
+    HAL_GPIO_WritePin(port, num, GPIO_PIN_RESET);
+    HAL_GPIO_Init(port, &gpio);
   }
 
   inline void init_pin_output_od(const pin_name pin, const pin_mode_t mode) {
-    static GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
-                                  .Mode = GPIO_MODE_OUTPUT_OD,
-                                  .Pull = get_pull_type(mode),
-                                  .Speed = GPIO_SPEED_FREQ_MEDIUM,
-                                  .Alternate = 0 };
+    GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
+                           .Mode = GPIO_MODE_OUTPUT_OD,
+                           .Pull = get_pull_type(mode),
+                           .Speed = GPIO_SPEED_FREQ_MEDIUM,
+                           .Alternate = 0 };
 
     init_clock_for_gpio(pin);
     HAL_GPIO_Init(pin_name_to_port(pin), &gpio);
   }
 
   inline void init_pin_analog(const pin_name pin, const pin_mode_t mode) {
-    static GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
-                                  .Mode = GPIO_MODE_ANALOG,
-                                  .Pull = get_pull_type(mode),
-                                  .Speed = GPIO_SPEED_FREQ_MEDIUM,
-                                  .Alternate = 0 };
+    GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
+                           .Mode = GPIO_MODE_ANALOG,
+                           .Pull = get_pull_type(mode),
+                           .Speed = GPIO_SPEED_FREQ_MEDIUM,
+                           .Alternate = 0 };
 
     init_clock_for_gpio(pin);
     HAL_GPIO_Init(pin_name_to_port(pin), &gpio);
   }
 
   inline void init_pin_alternate(const pin_name pin, const pin_mode_t mode, const uint16_t alternate) {
-    static GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
-                                  .Mode = mode == pin_mode_t::ALTERNATE_PP ? GPIO_MODE_AF_PP : GPIO_MODE_AF_OD,
-                                  .Pull = get_pull_type(mode),
-                                  .Speed = GPIO_SPEED_FREQ_MEDIUM,
-                                  .Alternate = alternate };
+    GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
+                           .Mode = mode == pin_mode_t::ALTERNATE_PP ? GPIO_MODE_AF_PP : GPIO_MODE_AF_OD,
+                           .Pull = get_pull_type(mode),
+                           .Speed = GPIO_SPEED_FREQ_MEDIUM,
+                           .Alternate = alternate };
 
     init_clock_for_gpio(pin);
     HAL_GPIO_Init(pin_name_to_port(pin), &gpio);
@@ -228,7 +229,7 @@ namespace pin_api {
 // PUBLIC API
 
 inline void pin_mode(const pin_name pin, const pin_mode_t mode, const uint16_t alternate = 0) {
-  assert(pin_api::pin_is_available(pin));
+  assert_param(pin_api::pin_is_available(pin));
 
   switch (mode) {
     case pin_mode_t::INPUT:
@@ -261,6 +262,7 @@ inline void pin_mode(const pin_name pin, const pin_mode_t mode, const uint16_t a
 }
 
 inline void write_pin(const pin_name pin, uint16_t val) {
+  assert_param(pin_api::pin_is_available(pin));
   HAL_GPIO_WritePin(pin_api::pin_name_to_port(pin), pin_api::pin_name_to_num(pin), static_cast<GPIO_PinState>(val));
 }
 
@@ -273,5 +275,16 @@ inline void reset_pin(const pin_name pin) {
 }
 
 inline void toggle_pin(const pin_name pin) {
+  assert_param(pin_api::pin_is_available(pin));
   HAL_GPIO_TogglePin(pin_api::pin_name_to_port(pin), pin_api::pin_name_to_num(pin));
+}
+
+inline bool read_pin(const pin_name pin) {
+  assert_param(pin_api::pin_is_available(pin));
+  return HAL_GPIO_ReadPin(pin_api::pin_name_to_port(pin), pin_api::pin_name_to_num(pin));
+}
+
+inline void deinit_pin(const pin_name pin) {
+  assert_param(pin_api::pin_is_available(pin));
+  HAL_GPIO_DeInit(pin_api::pin_name_to_port(pin), pin_api::pin_name_to_num(pin));
 }
