@@ -13,10 +13,25 @@ private:
   uint16_t reserve_index_ = 0;
 
 public:
-  void push(const data_t& d) {
+  uint16_t push(const data_t& d) {
+    if (is_full()) {
+      return 0;
+    }
     buff_[head_] = d;
     head_ = (head_ + 1) % N;
     is_full_ = is_full_ || (head_ == tail_);
+
+    return 1;
+  }
+
+  uint16_t push(const T* data, uint16_t n) {
+    int cnt = 0;
+    for (; cnt < n && not is_full(); ++cnt) {
+      buff_[head_] = data[cnt];
+      head_ = (head_ + 1) % N;
+      is_full_ = is_full_ || (head_ == tail_);
+    }
+    return cnt;
   }
 
   data_t pop() {
@@ -26,6 +41,12 @@ public:
     tail_ = (tail_ + 1) % N;
     is_full_ = false;
     return ret;
+  }
+
+  void pop(size_t n) {
+    assert_param(!is_empty());
+    tail_ = (tail_ + n) % N;
+    is_full_ = false;
   }
 
   const data_t& peek() const {
@@ -52,28 +73,19 @@ public:
     }
   }
 
+  uint16_t get_occupied_continuous() const {
+    if (head_ < tail_) {
+      return N - tail_;
+    } else {
+      return get_num_occupied();
+    }
+  }
+
   uint16_t get_num_free() const {
     return N - get_num_occupied();
   }
 
-  bool reserve_n(uint16_t num) {
-    if (num > get_num_free()) {
-      return false;
-    }
-    reserve_index_ = head_;
 
-    head_ += num;
-    head_ = head_ % N;
-
-    return true;
-  }
-
-  void push_to_reserved(const data_t* data, uint16_t len) {
-    for (uint16_t i = 0; i < len; ++i) {
-      buff_[reserve_index_] = data[i];
-      reserve_index_ = (reserve_index_ + 1) % N;
-    }
-  }
 
   void reset() {
     is_full_ = false;

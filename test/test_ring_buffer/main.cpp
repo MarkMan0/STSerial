@@ -125,34 +125,56 @@ void test_num_free_occupied() {
 }
 
 
-void test_reserving() {
-  RingBuffer<uint8_t, 10> buff;
+void test_push_n() {
+  RingBuffer<int, 4> buff;
 
-  buff.reserve_n(3);
-  TEST_ASSERT_FALSE(buff.is_empty());
-  TEST_ASSERT_EQUAL(3, buff.get_num_occupied());
+  int arr[] = { 0, 1, 2, 3, 4 };
+  TEST_ASSERT_EQUAL(3, buff.push(arr, 3));
+  TEST_ASSERT_EQUAL(1, buff.push(arr, 2));
 
-  uint8_t data[] = { 0, 1, 2 };
-  buff.push_to_reserved(data, 3);
-  TEST_ASSERT_EQUAL(0, buff.pop());
-  TEST_ASSERT_EQUAL(1, buff.pop());
-  TEST_ASSERT_EQUAL(2, buff.pop());
+  buff.pop();
+  TEST_ASSERT_EQUAL(1, buff.push(arr, 2));
+}
+
+
+void test_pop_n() {
+  RingBuffer<float, 5> buff;
+
+  buff.push(1);
+  buff.push(2);
+
+  buff.pop(2);
   TEST_ASSERT_TRUE(buff.is_empty());
 
-  buff.reserve_n(9);
-  uint8_t data2[] = { 6, 7, 8, 0, 1, 2, 3, 4, 5 };
-  buff.push_to_reserved(data2, 10);
+  buff.push(12);
+  buff.push(13);
+  buff.push(14);
 
-  buff.pop();
-  buff.pop();
-  buff.pop();
+  buff.pop(1);
+  TEST_ASSERT_EQUAL(2, buff.get_num_occupied());
+}
 
-  buff.reserve_n(3);
-  buff.push_to_reserved(data2, 3);
 
-  for (int i = 0; i < 9; ++i) {
-    TEST_ASSERT_EQUAL(i, buff.pop());
-  }
+void test_get_occupied_continuous() {
+  RingBuffer<int, 5> buff;
+  int arr[] = { 1, 2, 3, 4, 5 };
+
+  TEST_ASSERT_EQUAL(0, buff.get_occupied_continuous());
+
+  buff.push(arr, 3);
+  TEST_ASSERT_EQUAL(3, buff.get_occupied_continuous());
+
+  buff.push(arr, 2);
+  TEST_ASSERT_EQUAL(5, buff.get_occupied_continuous());
+
+  buff.pop(1);
+  TEST_ASSERT_EQUAL(4, buff.get_occupied_continuous());
+
+  buff.pop(2);
+  buff.push(10);
+  TEST_ASSERT_EQUAL(2, buff.get_occupied_continuous());
+  buff.pop(2);
+  TEST_ASSERT_EQUAL(1, buff.get_occupied_continuous());
 }
 
 
@@ -169,7 +191,9 @@ int main() {
   RUN_TEST(test_overflow);
   RUN_TEST(test_peek);
   RUN_TEST(test_num_free_occupied);
-  RUN_TEST(test_reserving);
+  RUN_TEST(test_push_n);
+  RUN_TEST(test_pop_n);
+  RUN_TEST(test_get_occupied_continuous);
 
   HAL_Delay(500);
   UNITY_END();
