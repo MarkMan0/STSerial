@@ -6,7 +6,6 @@ UART_DMA::UART_DMA(hw_init_fcn_t* a, isr_enable_fcn_t* b, msp_init_fcn_t* c, rx_
   : hw_init_cb(a), isr_enable_cb(b), msp_init_cb(c), rx_event_cb(d) {
 }
 
-
 void UART_DMA::begin(uint32_t baud) {
   baudrate_ = baud;
   hw_init_cb(*this);
@@ -16,12 +15,18 @@ void UART_DMA::begin(uint32_t baud) {
   huart_.ReceptionType = HAL_UART_RECEPTION_TOIDLE;  // also reacts to IDLE interrupt, so only one callback is needed
 }
 
+void UART_DMA::send(const char* buff, size_t sz) {
+  size_t sent = 0;
+  while (sent < sz) {
+    sent += uart2.transmit_buff_.push(reinterpret_cast<const uint8_t*>(buff + sent), sz - sent);
+  }
+}
 
-void UART_DMA::transmit(const char* buff) {
-  while (*buff != 0) {
-    uint8_t tmp = *buff;
-    HAL_UART_Transmit(&huart_, &tmp, 1, HAL_MAX_DELAY);
-    ++buff;
+void UART_DMA::tick() {
+  uint16_t n = uart2.transmit_buff_.get_occupied_continuous();
+  if (n) {
+    HAL_UART_Transmit_DMA(&huart_, const_cast<uint8_t*>(&uart2.transmit_buff_.peek()), n);
+    uart2.transmit_buff_.pop(n);
   }
 }
 

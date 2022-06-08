@@ -3,7 +3,7 @@
 #include "main.h"
 #include "ring_buffer.h"
 #include <array>
-
+#include <cstring>
 
 
 /**
@@ -32,13 +32,24 @@ public:
     return receive_buff_.pop();
   }
 
-  void put_one(uint8_t c) {
+
+  void transmit(uint8_t c) {
     HAL_UART_Transmit(&huart_, &c, 1, HAL_MAX_DELAY);
   }
+  void transmit(const char* str, size_t n) {
+    HAL_UART_Transmit(&huart_, reinterpret_cast<uint8_t*>(const_cast<char*>(str)), n, HAL_MAX_DELAY);
+  }
+  void transmit(const char* str) {
+    transmit(str, strlen(str));
+  }
 
-  void transmit(const char*);
 
+  void send(const char*, size_t);
+  void send(const char* str) {
+    send(str, strlen(str));
+  }
 
+  void tick();
 
   UART_HandleTypeDef huart_;
   DMA_HandleTypeDef hdmarx_, hdmatx_;

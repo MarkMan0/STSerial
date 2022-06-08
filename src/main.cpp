@@ -2,6 +2,7 @@
 #include "main.h"
 #include "pin_api.h"
 #include "uart.h"
+#include <array>
 void SystemClock_Config(void);
 
 
@@ -14,16 +15,22 @@ int main(void) {
 
   constexpr auto led_pin = PB3;
   pin_mode(led_pin, pin_mode_t::OUT_PP);
+  std::array<char, 40> str;
 
   while (1) {
     if (uart2.available()) {
-      uart2.transmit("\nGot: ");
+      str[0] = '\0';
+      strncat(str.data(), "Got: ", str.size() - 1);
       while (uart2.available()) {
-        uart2.put_one(uart2.get_one());
+        auto c = uart2.get_one();
+        char s[] = { c, '\0' };
+        strncat(str.data(), s, str.size() - 1);
       }
+      strncat(str.data(), "\n", str.size() - 1);
 
-      uart2.put_one('\n');
+      uart2.send(str.data());
     }
+    uart2.tick();
 
 
     toggle_pin(led_pin);
