@@ -10,7 +10,6 @@ private:
   std::array<data_t, N> buff_;
   volatile uint16_t head_{}, tail_{};
   bool is_full_ = false;
-  uint16_t reserve_index_ = 0;
 
 public:
   uint16_t push(const data_t& d) {
