@@ -1,5 +1,6 @@
 #include "main.h"
 #include "stm32f3xx_it.h"
+#include "uart.h"
 
 /******************************************************************************/
 /*           Cortex-M4 Processor Interruption and Exception Handlers          */
@@ -65,4 +66,18 @@ void PendSV_Handler(void) {
  */
 void SysTick_Handler(void) {
   HAL_IncTick();
+}
+
+
+void DMA1_Channel6_IRQHandler(void) {
+  HAL_DMA_IRQHandler(&uart2.hdmarx_);
+}
+
+void DMA1_Channel7_IRQHandler(void) {
+  HAL_DMA_IRQHandler(&uart2.hdmatx_);
+}
+
+
+void USART2_IRQHandler(void) {
+  HAL_UART_IRQHandler(&uart2.huart_);
 }

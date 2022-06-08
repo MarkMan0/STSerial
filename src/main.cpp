@@ -1,7 +1,7 @@
 
 #include "main.h"
 #include "pin_api.h"
-
+#include "uart.h"
 void SystemClock_Config(void);
 
 
@@ -10,10 +10,22 @@ int main(void) {
   HAL_Init();
   SystemClock_Config();
 
+  uart2.begin(115200);
+
   constexpr auto led_pin = PB3;
   pin_mode(led_pin, pin_mode_t::OUT_PP);
 
   while (1) {
+    if (uart2.available()) {
+      uart2.transmit("\nGot: ");
+      while (uart2.available()) {
+        uart2.put_one(uart2.get_one());
+      }
+
+      uart2.put_one('\n');
+    }
+
+
     toggle_pin(led_pin);
 #ifdef NDEBUG
     HAL_Delay(500);

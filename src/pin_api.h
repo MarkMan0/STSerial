@@ -288,3 +288,9 @@ inline void deinit_pin(const pin_name pin) {
   assert_param(pin_api::pin_is_available(pin));
   HAL_GPIO_DeInit(pin_api::pin_name_to_port(pin), pin_api::pin_name_to_num(pin));
 }
+
+
+
+namespace pins {
+  inline constexpr auto rx = PA15, tx = PA2, led = PB3;
+}

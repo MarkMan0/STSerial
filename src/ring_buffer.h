@@ -74,4 +74,10 @@ public:
       reserve_index_ = (reserve_index_ + 1) % N;
     }
   }
+
+  void reset() {
+    is_full_ = false;
+    head_ = 0;
+    tail_ = 0;
+  }
 };
