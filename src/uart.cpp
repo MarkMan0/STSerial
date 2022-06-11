@@ -17,10 +17,10 @@ void UART_DMA::begin(uint32_t baud) {
   SET_BIT(huart_.Instance->CR1, USART_CR1_IDLEIE);
 }
 
-void UART_DMA::send(const char* buff, size_t sz) {
+void UART_DMA::send(const void* buff, size_t sz) {
   size_t sent = 0;
   while (sent < sz) {
-    sent += transmit_buff_.push(reinterpret_cast<const uint8_t*>(buff + sent), sz - sent);
+    sent += transmit_buff_.push(reinterpret_cast<const uint8_t*>(buff) + sent, sz - sent);
   }
 }
 

@@ -37,8 +37,8 @@ public:
   void transmit(uint8_t c) {
     HAL_UART_Transmit(&huart_, &c, 1, HAL_MAX_DELAY);
   }
-  void transmit(const char* str, size_t n) {
-    HAL_UART_Transmit(&huart_, reinterpret_cast<uint8_t*>(const_cast<char*>(str)), n, HAL_MAX_DELAY);
+  void transmit(const void* str, size_t n) {
+    HAL_UART_Transmit(&huart_, reinterpret_cast<uint8_t*>(const_cast<void*>(str)), n, HAL_MAX_DELAY);
   }
   void transmit(const char* str) {
     transmit(str, strlen(str));
@@ -49,7 +49,7 @@ public:
    *  @details Messages are placed into transmission_buffer and sent out later, asynchronously
    */
   ///@{
-  void send(const char*, size_t);
+  void send(const void*, size_t);
   void send(const char* str) {
     send(str, strlen(str));
   }
