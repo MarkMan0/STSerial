@@ -178,6 +178,56 @@ void test_get_occupied_continuous() {
 }
 
 
+void test_num_free_cont() {
+  RingBuffer<char, 5> buff{};
+
+  TEST_ASSERT_EQUAL(5, buff.get_num_free_continuous());
+  buff.push(1);
+  buff.push(2);
+  TEST_ASSERT_EQUAL(3, buff.get_num_free_continuous());
+
+  buff.pop();
+  buff.pop();
+  TEST_ASSERT_EQUAL(3, buff.get_num_free_continuous());
+
+  buff.push(3);
+  buff.push(4);
+  buff.pop();
+  TEST_ASSERT_EQUAL(1, buff.get_num_free_continuous());
+  buff.push(5);
+  TEST_ASSERT_EQUAL(3, buff.get_num_free_continuous());
+}
+
+
+
+void test_reserve_and_push() {
+  RingBuffer<char, 5> buff{};
+
+  TEST_ASSERT_NULL(buff.reserve(6));
+
+  auto ptr = buff.reserve(2);
+  *ptr = 1;
+  *(ptr + 1) = 2;
+
+  TEST_ASSERT_EQUAL(2, buff.get_num_occupied());
+  TEST_ASSERT_EQUAL(1, buff.pop());
+  TEST_ASSERT_EQUAL(2, buff.pop());
+
+  ptr = buff.reserve(4);
+  TEST_ASSERT_NULL(ptr);
+  ptr = buff.reserve(3);
+  *ptr = 3;
+  *(ptr + 1) = 4;
+  *(ptr + 3) = 5;
+
+
+  ptr = buff.reserve(3);
+  TEST_ASSERT_NULL(ptr);
+  ptr = buff.reserve(2);
+}
+
+
+
 int main() {
   HAL_Init();
   HAL_Delay(500);
@@ -194,6 +244,8 @@ int main() {
   RUN_TEST(test_push_n);
   RUN_TEST(test_pop_n);
   RUN_TEST(test_get_occupied_continuous);
+  RUN_TEST(test_num_free_cont);
+  RUN_TEST(test_reserve_and_push);
 
   HAL_Delay(500);
   UNITY_END();

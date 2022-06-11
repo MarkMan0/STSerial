@@ -84,7 +84,24 @@ public:
     return N - get_num_occupied();
   }
 
+  uint16_t get_num_free_continuous() const {
+    if (head_ < tail_) {
+      return tail_ - head_;
+    } else {
+      return N - head_;
+    }
+  }
 
+  data_t* reserve(uint16_t n) {
+    if (get_num_free_continuous() < n) {
+      return nullptr;
+    }
+
+    data_t* ret = &(buff_[head_]);
+    head_ = (head_ + n) % N;
+
+    return ret;
+  }
 
   void reset() {
     is_full_ = false;
