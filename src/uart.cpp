@@ -46,9 +46,3 @@ uint16_t UART_DMA::vprintf(const char* fmt, va_list args) {
 
   return vsnprintf(reinterpret_cast<char*>(ptr), msglen, fmt, args);
 }
-
-
-
-UART_DMA uart2(UART_DMA::uart2_hw_init, UART_DMA::uart2_enable_isrs);
-
-UART_DMA uart1(UART_DMA::uart1_hw_init, UART_DMA::uart1_enable_isrs);

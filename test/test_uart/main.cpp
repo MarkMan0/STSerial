@@ -4,6 +4,10 @@
 #include <unity.h>
 
 
+UART_DMA uart2(UART_DMA::uart2_hw_init, UART_DMA::uart2_enable_isrs);
+UART_DMA uart1(UART_DMA::uart1_hw_init, UART_DMA::uart1_enable_isrs);
+
+
 void setUp() {
 }
 void tearDown() {
