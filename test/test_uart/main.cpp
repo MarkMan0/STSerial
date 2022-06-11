@@ -87,6 +87,27 @@ void test_send_data() {
   TEST_ASSERT_EQUAL_MEMORY(&s1, &s2, sizeof(s1));
 }
 
+void test_printf() {
+  const char fmt[] = "Hi %s %d %e";
+  const char str[] = "Joe";
+  const int i = -434;
+  const float f = 3.1415;
+  char expected[50];
+  int len = snprintf(expected, 50, fmt, str, i, f);
+
+  int len2 = uart1.printf(fmt, str, i, f);
+  uart1.flush();
+  HAL_Delay(1);
+  char result[50]{};
+  for (int i = 0; i < 50 && uart1.available(); ++i) {
+    result[i] = uart1.get_one();
+  }
+
+  TEST_ASSERT_NOT_EQUAL(0, len2);
+  TEST_ASSERT_EQUAL(len, len2);
+  TEST_ASSERT_EQUAL_STRING(expected, result);
+}
+
 
 int main() {
   HAL_Init();
@@ -99,6 +120,7 @@ int main() {
   RUN_TEST(test_transmit_immediate);
   RUN_TEST(test_transmit_data);
   RUN_TEST(test_send_data);
+  RUN_TEST(test_printf);
 
   HAL_Delay(500);
   UNITY_END();

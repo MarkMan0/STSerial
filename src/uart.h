@@ -4,6 +4,7 @@
 #include "ring_buffer.h"
 #include <array>
 #include <cstring>
+#include <cstdarg>
 
 
 /**
@@ -54,6 +55,13 @@ public:
     send(str, strlen(str));
   }
 
+  uint16_t printf(const char* fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    const auto res = this->vprintf(fmt, args);
+    va_end(args);
+    return res;
+  }
   /// @brief Flush the transmission buffer
   void flush();
   ///@}
@@ -64,6 +72,8 @@ public:
   DMA_HandleTypeDef hdmarx_, hdmatx_;
 
 private:
+  uint16_t vprintf(const char* fmt, va_list args);
+
   uint32_t baudrate_{ 115200 };
   uint16_t last_rxdma_pos_{ 0 };           ///< Used in rx event callback to track DMA
   std::array<uint8_t, 64> dma_buff_;       ///< Buffer sued by the DMA to receive

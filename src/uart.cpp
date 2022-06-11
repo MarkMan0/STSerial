@@ -36,6 +36,18 @@ void UART_DMA::tick() {
 }
 
 
+uint16_t UART_DMA::vprintf(const char* fmt, va_list args) {
+  auto msglen = vsnprintf(nullptr, 0, fmt, args);
+
+  auto ptr = transmit_buff_.reserve(msglen + 1);
+  if (!ptr) {
+    return 0;
+  }
+
+  return vsnprintf(reinterpret_cast<char*>(ptr), msglen, fmt, args);
+}
+
+
 
 UART_DMA uart2(UART_DMA::uart2_hw_init, UART_DMA::uart2_enable_isrs);
 
