@@ -130,8 +130,8 @@ static void uart1_msp_init(UART_HandleTypeDef* uart) {
 
   __HAL_RCC_USART1_CLK_ENABLE();
 
-  pin_mode(pins::rx1, pin_mode_t::ALTERNATE_PP, GPIO_AF7_USART2);
-  pin_mode(pins::tx1, pin_mode_t::ALTERNATE_PP, GPIO_AF7_USART2);
+  pin_mode(pins::rx1, pin_mode_t::ALTERNATE_PP, GPIO_AF7_USART1);
+  pin_mode(pins::tx1, pin_mode_t::ALTERNATE_PP, GPIO_AF7_USART1);
 
   __HAL_RCC_DMA1_CLK_ENABLE();
 
