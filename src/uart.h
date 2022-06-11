@@ -68,6 +68,8 @@ public:
 
   void tick();  //!< Called peridically to empty the transmit buffer
 
+  void reset_buffers();
+
   UART_HandleTypeDef huart_;
   DMA_HandleTypeDef hdmarx_, hdmatx_;
 

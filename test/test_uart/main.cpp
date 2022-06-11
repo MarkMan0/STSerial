@@ -12,9 +12,11 @@ void setUp() {
 }
 void tearDown() {
   uart1.flush();
+  HAL_Delay(500);
   while (uart1.available()) {
     uart1.get_one();
   }
+  uart1.reset_buffers();
 }
 
 const char msg[] = "Hello world!";
@@ -101,7 +103,7 @@ void test_printf() {
 
   int len2 = uart1.printf(fmt, str, i, f);
   uart1.flush();
-  HAL_Delay(1);
+  HAL_Delay(1000);
   char result[50]{};
   for (int i = 0; i < 50 && uart1.available(); ++i) {
     result[i] = uart1.get_one();

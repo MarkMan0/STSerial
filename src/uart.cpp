@@ -44,5 +44,10 @@ uint16_t UART_DMA::vprintf(const char* fmt, va_list args) {
     return 0;
   }
 
-  return vsnprintf(reinterpret_cast<char*>(ptr), msglen, fmt, args);
+  return vsnprintf(reinterpret_cast<char*>(ptr), msglen + 1, fmt, args);
+}
+
+void UART_DMA::reset_buffers() {
+  transmit_buff_.reset();
+  receive_buff_.reset();
 }
