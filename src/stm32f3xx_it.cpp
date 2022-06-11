@@ -1,3 +1,8 @@
+/**
+ * @file stm32f3xx_it.cpp
+ * @brief Interrupt handlers
+ */
+
 #include "main.h"
 #include "stm32f3xx_it.h"
 #include "uart.h"

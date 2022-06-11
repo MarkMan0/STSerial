@@ -1,3 +1,10 @@
+/**
+ * @file main.cpp
+ * @brief Program entry point
+ *
+ */
+
+
 
 #include "main.h"
 #include "pin_api.h"

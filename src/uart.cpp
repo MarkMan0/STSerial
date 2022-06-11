@@ -1,3 +1,8 @@
+/**
+ * @file uart.cpp
+ * @brief Common functions for UART_DMA
+ */
+
 #include "uart.h"
 #include "pin_api.h"
 
@@ -25,7 +30,7 @@ void UART_DMA::send(const void* buff, size_t sz) {
 }
 
 void UART_DMA::flush() {
-  while (uint16_t n = transmit_buff_.get_occupied_continuous()) {
+  while (uint16_t n = transmit_buff_.get_num_occupied_continuous()) {
     HAL_UART_Transmit_DMA(&huart_, const_cast<uint8_t*>(&transmit_buff_.peek()), n);
     transmit_buff_.pop(n);
   }

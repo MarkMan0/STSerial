@@ -1,3 +1,9 @@
+/**
+ * @file main.cpp
+ * @brief tests for ring_buffer
+ */
+
+
 #include "../../src/main.h"
 #include "../../src/ring_buffer.h"
 #include <unity.h>
@@ -155,26 +161,26 @@ void test_pop_n() {
 }
 
 
-void test_get_occupied_continuous() {
+void test_get_num_occupied_continuous() {
   RingBuffer<int, 5> buff;
   int arr[] = { 1, 2, 3, 4, 5 };
 
-  TEST_ASSERT_EQUAL(0, buff.get_occupied_continuous());
+  TEST_ASSERT_EQUAL(0, buff.get_num_occupied_continuous());
 
   buff.push(arr, 3);
-  TEST_ASSERT_EQUAL(3, buff.get_occupied_continuous());
+  TEST_ASSERT_EQUAL(3, buff.get_num_occupied_continuous());
 
   buff.push(arr, 2);
-  TEST_ASSERT_EQUAL(5, buff.get_occupied_continuous());
+  TEST_ASSERT_EQUAL(5, buff.get_num_occupied_continuous());
 
   buff.pop(1);
-  TEST_ASSERT_EQUAL(4, buff.get_occupied_continuous());
+  TEST_ASSERT_EQUAL(4, buff.get_num_occupied_continuous());
 
   buff.pop(2);
   buff.push(10);
-  TEST_ASSERT_EQUAL(2, buff.get_occupied_continuous());
+  TEST_ASSERT_EQUAL(2, buff.get_num_occupied_continuous());
   buff.pop(2);
-  TEST_ASSERT_EQUAL(1, buff.get_occupied_continuous());
+  TEST_ASSERT_EQUAL(1, buff.get_num_occupied_continuous());
 }
 
 
@@ -243,7 +249,7 @@ int main() {
   RUN_TEST(test_num_free_occupied);
   RUN_TEST(test_push_n);
   RUN_TEST(test_pop_n);
-  RUN_TEST(test_get_occupied_continuous);
+  RUN_TEST(test_get_num_occupied_continuous);
   RUN_TEST(test_num_free_cont);
   RUN_TEST(test_reserve_and_push);
 

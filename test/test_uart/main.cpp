@@ -1,3 +1,8 @@
+/**
+ * @file main.cpp
+ * @brief tests for UART_DMA
+ */
+
 #include "../../src/main.h"
 #include "../../src/uart.h"
 #include "../../src/stm32f3xx_it.h"

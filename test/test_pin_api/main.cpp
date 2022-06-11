@@ -1,3 +1,8 @@
+/**
+ * @file main.cpp
+ * @brief tests for pin_api
+ */
+
 #include "../../src/main.h"
 #include "../../src/pin_api.h"
 #include <unity.h>

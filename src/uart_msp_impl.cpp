@@ -1,10 +1,14 @@
+/**
+ * @file uart_msp_impl.cpp
+ * @brief UART init and other callbacks, that differ by board/UART number
+ */
+
 #include "main.h"
 #include "pin_api.h"
 #include "uart.h"
 
-
+/// @details Placed in MSP file, so compiler could inline it for specific cases
 void UART_DMA::rx_event_cb(UART_HandleTypeDef* huart, uint16_t pos) {
-  // Placed here so compiler could inline calls
   assert_param(&huart_ == huart);
 
   for (; last_rxdma_pos_ < pos; ++last_rxdma_pos_) {

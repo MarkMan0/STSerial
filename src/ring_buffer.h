@@ -1,3 +1,8 @@
+/**
+ * @file ring_buffer.h
+ * @brief Simple ring-buffer implementation
+ */
+
 #pragma once
 #include "main.h"
 #include <cstdint>
@@ -72,7 +77,7 @@ public:
     }
   }
 
-  uint16_t get_occupied_continuous() const {
+  uint16_t get_num_occupied_continuous() const {
     if (head_ < tail_) {
       return N - tail_;
     } else {
@@ -92,6 +97,7 @@ public:
     }
   }
 
+  /// @brief Moves head by @p n, if @p n number of continuous space is available
   data_t* reserve(uint16_t n) {
     if (get_num_free_continuous() < n) {
       return nullptr;

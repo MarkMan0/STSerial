@@ -9,24 +9,26 @@
 
 /**
  * @brief Uart wrapper with DMA for rx and tx
- * @details In theory, it can be used for multiple uarts if set up properly in the constructor
- * User would need to implement the 4 functions for the constructor
- * Implementation is provided for UART2
+ * @details It can be used for multiple uarts if set up properly in the constructor
+ * User would need to implement the 2 functions for the constructor
+ * Implementation is provided for UART1 and UART2
  *
  */
 class UART_DMA {
 public:
-  using hw_init_fcn_t = void(UART_DMA&);
-  using isr_enable_fcn_t = void(UART_DMA&);
+  using hw_init_fcn_t = void(UART_DMA&);     ///< Function called in begin(), inits the hardware
+  using isr_enable_fcn_t = void(UART_DMA&);  ///< Function called in begin(), enables the interrupts
 
-  UART_DMA(hw_init_fcn_t*, isr_enable_fcn_t*);
+  UART_DMA(hw_init_fcn_t*, isr_enable_fcn_t*);  ///< Provide the necessary callbacks
 
-  void begin(uint32_t baud);
+  void begin(uint32_t baud);  ///< Call once only, to init the hardware
 
+  /// @brief Return the number of bytes available for reading
   uint16_t available() const {
     return receive_buff_.get_num_occupied();
   }
 
+  /// @brief Return and pop one byte from the RX buffer
   uint8_t get_one() {
     return receive_buff_.pop();
   }
@@ -38,8 +40,8 @@ public:
   void transmit(uint8_t c) {
     HAL_UART_Transmit(&huart_, &c, 1, HAL_MAX_DELAY);
   }
-  void transmit(const void* str, size_t n) {
-    HAL_UART_Transmit(&huart_, reinterpret_cast<uint8_t*>(const_cast<void*>(str)), n, HAL_MAX_DELAY);
+  void transmit(const void* data, size_t n) {
+    HAL_UART_Transmit(&huart_, reinterpret_cast<uint8_t*>(const_cast<void*>(data)), n, HAL_MAX_DELAY);
   }
   void transmit(const char* str) {
     transmit(str, strlen(str));
@@ -55,6 +57,9 @@ public:
     send(str, strlen(str));
   }
 
+  /// @brief Fully functional printf-style messages
+  /// @details Messages are placed directly into the TX buffer
+  /// If not enough place in buffer, transmits nothing
   uint16_t printf(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
@@ -66,9 +71,9 @@ public:
   void flush();
   ///@}
 
-  void tick();  //!< Called peridically to empty the transmit buffer
+  void tick();  ///< Called peridically to empty the transmit buffer
 
-  void reset_buffers();
+  void reset_buffers();  ///< Resets both buffers so head=tail=0
 
   UART_HandleTypeDef huart_;
   DMA_HandleTypeDef hdmarx_, hdmatx_;

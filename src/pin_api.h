@@ -1,8 +1,14 @@
+/**
+ * @file pin_api.h
+ * @brief Code to simplify working with pins. Wrpas HAL with low to none overhead
+ */
+
 #pragma once
 
 #include <cassert>
 #include <array>
 
+/// @brief All existing pins
 enum pin_name : uint8_t {
   // clang-format off
   PA0, PA1, PA2, PA3, PA4, PA5, PA6, PA7, PA8, PA9, PA10, PA11, PA12, PA13, PA14, PA15,
@@ -16,6 +22,7 @@ enum pin_name : uint8_t {
   // clang-format on
 };
 
+/// @brief The mode for pins
 enum class pin_mode_t {
   INPUT,
   INPUT_PU,
@@ -32,13 +39,14 @@ enum class pin_mode_t {
 };
 
 
-// IMPLEMENTATION
-
+/// @brief Backend for pin_api, not needed by the user
 namespace pin_api {
 
+  /// @brief The available pins on the current board/MCU
   inline constexpr pin_name usable_pins[] = { PA0,  PA1,  PA2,  PA3,  PA4, PA5, PA6, PA7, PA8, PA9, PA10, PA11,
                                               PA12, PA13, PA14, PA15, PB0, PB1, PB2, PB3, PB4, PB5, PB6,  PB7 };
 
+  /// @brief Returns the pointer to the PORT for the current pin or nullptr
   inline GPIO_TypeDef* pin_name_to_port(const pin_name pin) {
     constexpr std::array<GPIO_TypeDef*, 8> table = {
 #ifdef GPIOA
@@ -90,10 +98,12 @@ namespace pin_api {
     return ret;
   }
 
+  /// @brief Returns the HAL pin number for the current pin
   inline constexpr uint16_t pin_name_to_num(const pin_name pin) {
     return 0x1 << (pin % 16);
   }
 
+  /// @brief In DEBUG build, checks if the given pin is available on the board. In RELEASE, return true
   inline constexpr bool pin_is_available(const pin_name pin) {
 #ifdef NDEBUG
     return true;
@@ -107,6 +117,7 @@ namespace pin_api {
     return false;
   }
 
+  /// @brief Extracts the pull mode for the given pin_mode
   constexpr uint16_t get_pull_type(const pin_mode_t mode) {
     switch (mode) {
       default:
@@ -122,6 +133,7 @@ namespace pin_api {
     }
   }
 
+  /// @brief Starts the clock for the given pin
   inline void init_clock_for_gpio(const pin_name pin) {
     switch (pin / 16) {
 #ifdef GPIOA_BASE
@@ -166,7 +178,8 @@ namespace pin_api {
 #endif
     }
   }
-
+  /// @name init functions for all modes
+  /// @{
   inline void init_pin_input(const pin_name pin, const pin_mode_t mode) {
     GPIO_InitTypeDef gpio{ .Pin = pin_name_to_num(pin),
                            .Mode = GPIO_MODE_INPUT,
@@ -223,11 +236,15 @@ namespace pin_api {
     init_clock_for_gpio(pin);
     HAL_GPIO_Init(pin_name_to_port(pin), &gpio);
   }
+
+  /// @}
 }  // namespace pin_api
 
 
-// PUBLIC API
+/// @name public API of pin_api
+/// @{
 
+/// @brief pin initialization in mode @p mode. If mode is alternate, specify AF in @p alternate
 inline void pin_mode(const pin_name pin, const pin_mode_t mode, const uint16_t alternate = 0) {
   assert_param(pin_api::pin_is_available(pin));
 
@@ -290,7 +307,9 @@ inline void deinit_pin(const pin_name pin) {
 }
 
 
+/// @}
 
+/// @brief pin aliases
 namespace pins {
   inline constexpr auto rx = PA15, tx = PA2, led = PB3, rx1 = PA10, tx1 = PA9;
 }

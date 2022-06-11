@@ -1,3 +1,7 @@
+/**
+ * @file stm32f3xx_it.h
+ * @brief Interrupt handler signatures
+ */
 #pragma once
 
 #ifdef __cplusplus

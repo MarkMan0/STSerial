@@ -1,3 +1,7 @@
+/**
+ * @file unity_config.h
+ * @brief unity test framework configuration
+ */
 #ifndef UNITY_CONFIG_H
 #define UNITY_CONFIG_H
 
