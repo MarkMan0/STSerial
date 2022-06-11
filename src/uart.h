@@ -79,7 +79,20 @@ public:
   /** @brief Called by HAL on DMA or IDLE interrupt */
   static void uart2_rx_event_cb(UART_HandleTypeDef* huart, uint16_t Pos);
 
+
+  /** @name UART1 init and callback functions */
+  ///@{
+
+  /** @brief Initialization of the UART peripherial and handle */
+  static void uart1_hw_init(UART_DMA&);
+  /** @brief Enables interrupts for UART and DMAs */
+  static void uart1_enable_isrs(UART_DMA&);
+  /** @brief Called by the HAL library to init the pins and DMA for UART1 */
+  static void uart1_msp_init(UART_HandleTypeDef*);
+  /** @brief Called by HAL on DMA or IDLE interrupt */
+  static void uart1_rx_event_cb(UART_HandleTypeDef* huart, uint16_t Pos);
+
   ///@}
 };
 
-extern UART_DMA uart2;
+extern UART_DMA uart2, uart1;

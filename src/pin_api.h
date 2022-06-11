@@ -292,5 +292,5 @@ inline void deinit_pin(const pin_name pin) {
 
 
 namespace pins {
-  inline constexpr auto rx = PA15, tx = PA2, led = PB3;
+  inline constexpr auto rx = PA15, tx = PA2, led = PB3, rx1 = PA10, tx1 = PA9;
 }

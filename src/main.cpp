@@ -12,6 +12,7 @@ int main(void) {
   SystemClock_Config();
 
   uart2.begin(115200);
+  uart1.begin(115200);
 
   constexpr auto led_pin = PB3;
   pin_mode(led_pin, pin_mode_t::OUT_PP);
@@ -20,16 +21,41 @@ int main(void) {
   while (1) {
     if (uart2.available()) {
       str[0] = '\0';
-      strncat(str.data(), "Got: ", str.size() - 1);
+      strncat(str.data(), "Got 2: \"", str.size() - 1);
       while (uart2.available()) {
         auto c = uart2.get_one();
+        if (c == '\n' || c == '\r') {
+          continue;
+        }
         char s[] = { c, '\0' };
         strncat(str.data(), s, str.size() - 1);
       }
+      strncat(str.data(), "\"", str.size() - 1);
+      strncat(str.data(), "\n", str.size() - 1);
+
+      uart1.send(str.data());
+      uart2.send(str.data());
+    }
+
+
+    if (uart1.available()) {
+      str[0] = '\0';
+      strncat(str.data(), "Got 1: \"", str.size() - 1);
+      while (uart1.available()) {
+        auto c = uart1.get_one();
+        if (c == '\n' || c == '\r') {
+          continue;
+        }
+        char s[] = { c, '\0' };
+        strncat(str.data(), s, str.size() - 1);
+      }
+      strncat(str.data(), "\"", str.size() - 1);
       strncat(str.data(), "\n", str.size() - 1);
 
       uart2.send(str.data());
     }
+
+    uart1.tick();
     uart2.tick();
 
 
