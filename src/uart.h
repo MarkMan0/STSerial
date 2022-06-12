@@ -33,6 +33,9 @@ public:
     return receive_buff_.pop();
   }
 
+  /// @brief Reads at max @p n bytes into @p dest. @return The number of bytes read
+  uint16_t get_n(uint8_t* dest, uint16_t n);
+
   /** @name Immediate transmission
    *  @details Messages are sent out immediately
    */
