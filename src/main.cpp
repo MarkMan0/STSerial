@@ -10,25 +10,57 @@
 #include "pin_api.h"
 #include "uart.h"
 #include <array>
+#include "FreeRTOS.h"
+#include "cmsis_os2.h"
+
 void SystemClock_Config(void);
 
 
 UART_DMA uart2(UART_DMA::uart2_hw_init, UART_DMA::uart2_enable_isrs);
 UART_DMA uart1(UART_DMA::uart1_hw_init, UART_DMA::uart1_enable_isrs);
 
-
-int main(void) {
-  HAL_Init();
-  SystemClock_Config();
-
-  uart2.begin(115200);
-  uart1.begin(115200);
-
-  constexpr auto led_pin = PB3;
-  pin_mode(led_pin, pin_mode_t::OUT_PP);
-  std::array<char, 40> str;
-
+static void led_task(void*) {
+  pin_mode(pins::led, pin_mode_t::OUT_PP);
   while (1) {
+    toggle_pin(pins::led);
+    osDelay(pdMS_TO_TICKS(500));
+  }
+}
+
+constexpr osThreadAttr_t led_task_attr{ .name = "Led task",
+                                        .attr_bits = 0,
+                                        .cb_mem = nullptr,
+                                        .cb_size = 0,
+                                        .stack_mem = nullptr,
+                                        .stack_size = 128 * 4,
+                                        .priority = osPriorityNormal,
+                                        .tz_module = 0,
+                                        .reserved = 0 };
+
+
+constexpr osThreadAttr_t uart2_task_attr{ .name = "UART2 task",
+                                          .attr_bits = 0,
+                                          .cb_mem = nullptr,
+                                          .cb_size = 0,
+                                          .stack_mem = nullptr,
+                                          .stack_size = 128 * 4,
+                                          .priority = osPriorityAboveNormal1,
+                                          .tz_module = 0,
+                                          .reserved = 0 };
+constexpr osThreadAttr_t uart1_task_attr{ .name = "UART1 task",
+                                          .attr_bits = 0,
+                                          .cb_mem = nullptr,
+                                          .cb_size = 0,
+                                          .stack_mem = nullptr,
+                                          .stack_size = 128 * 4,
+                                          .priority = osPriorityNormal1,
+                                          .tz_module = 0,
+                                          .reserved = 0 };
+
+static void uart2_task(void*) {
+  static std::array<char, 40> str{};
+  while (1) {
+    uart2.tick();
     if (uart2.available()) {
       str[0] = '\0';
       strncat(str.data(), "Got 2: \"", str.size() - 1);
@@ -46,8 +78,14 @@ int main(void) {
       uart1.send(str.data());
       uart2.send(str.data());
     }
+    osDelay(pdMS_TO_TICKS(100));
+  }
+}
 
-
+static void uart1_task(void*) {
+  static std::array<char, 40> str{};
+  while (1) {
+    uart1.tick();
     if (uart1.available()) {
       str[0] = '\0';
       strncat(str.data(), "Got 1: \"", str.size() - 1);
@@ -65,16 +103,26 @@ int main(void) {
       uart2.send(str.data());
     }
 
-    uart1.tick();
-    uart2.tick();
+    osDelay(pdMS_TO_TICKS(100));
+  }
+}
+
+int main(void) {
+  HAL_Init();
+  SystemClock_Config();
+
+  uart2.begin(115200);
+  uart1.begin(115200);
 
 
-    toggle_pin(led_pin);
-#ifdef NDEBUG
-    HAL_Delay(500);
-#else
-    HAL_Delay(2000);
-#endif
+  osKernelInitialize();
+
+  osThreadNew(led_task, nullptr, &led_task_attr);
+  osThreadNew(uart1_task, nullptr, &uart1_task_attr);
+  osThreadNew(uart2_task, nullptr, &uart2_task_attr);
+
+  osKernelStart();
+  while (1) {
   }
 }
 
@@ -128,7 +176,8 @@ void Error_Handler(void) {
  * @retval None
  */
 void assert_failed(uint8_t* file, uint32_t line) {
-  while (1) {
+  volatile bool b = true;
+  while (b) {
     HAL_Delay(1000);
   }
 }
@@ -138,4 +187,65 @@ void assert_failed(uint8_t* file, uint32_t line) {
 void HAL_MspInit(void) {
   __HAL_RCC_SYSCFG_CLK_ENABLE();
   __HAL_RCC_PWR_CLK_ENABLE();
+}
+
+
+
+TIM_HandleTypeDef htim7;
+
+static void TIM7_period_elapsed_cb(TIM_HandleTypeDef* htim) {
+  assert_param(&htim7 == htim);
+
+  if (htim->Instance == TIM7) {
+    HAL_IncTick();
+  }
+}
+
+static HAL_StatusTypeDef init_TIM7(uint32_t TickPriority) {
+  RCC_ClkInitTypeDef clkconfig;
+  uint32_t uwTimclock = 0;
+  uint32_t uwPrescalerValue = 0;
+  uint32_t pFLatency;
+
+  HAL_NVIC_SetPriority(TIM7_DAC2_IRQn, TickPriority, 0);
+  HAL_NVIC_EnableIRQ(TIM7_DAC2_IRQn);
+
+  __HAL_RCC_TIM7_CLK_ENABLE();
+
+  HAL_RCC_GetClockConfig(&clkconfig, &pFLatency);
+
+  uwTimclock = HAL_RCC_GetPCLK1Freq();
+
+  uwPrescalerValue = (uint32_t)((uwTimclock / 1000000) - 1);
+
+  htim7.Instance = TIM7;
+
+  htim7.Init.Period = (1000000 / 1000) - 1;
+  htim7.Init.Prescaler = uwPrescalerValue;
+  htim7.Init.ClockDivision = 0;
+  htim7.Init.CounterMode = TIM_COUNTERMODE_UP;
+  if (HAL_TIM_Base_Init(&htim7) == HAL_OK) {
+    HAL_TIM_RegisterCallback(&htim7, HAL_TIM_PERIOD_ELAPSED_CB_ID, TIM7_period_elapsed_cb);
+    return HAL_TIM_Base_Start_IT(&htim7);
+  }
+
+  /* Return function status */
+  return HAL_ERROR;
+}
+
+
+
+HAL_StatusTypeDef HAL_InitTick(uint32_t TickPriority) {
+  uwTickPrio = TickPriority;
+  return init_TIM7(TickPriority);
+}
+
+
+void HAL_SuspendTick(void) {
+  __HAL_TIM_DISABLE_IT(&htim7, TIM_IT_UPDATE);
+}
+
+
+void HAL_ResumeTick(void) {
+  __HAL_TIM_ENABLE_IT(&htim7, TIM_IT_UPDATE);
 }

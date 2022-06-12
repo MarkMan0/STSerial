@@ -48,11 +48,6 @@ void UsageFault_Handler(void) {
   }
 }
 
-/**
- * @brief This function handles System service call via SWI instruction.
- */
-void SVC_Handler(void) {
-}
 
 /**
  * @brief This function handles Debug monitor.
@@ -60,18 +55,6 @@ void SVC_Handler(void) {
 void DebugMon_Handler(void) {
 }
 
-/**
- * @brief This function handles Pendable request for system service.
- */
-void PendSV_Handler(void) {
-}
-
-/**
- * @brief This function handles System tick timer.
- */
-void SysTick_Handler(void) {
-  HAL_IncTick();
-}
 
 void DMA1_Channel4_IRQHandler(void) {
   HAL_DMA_IRQHandler(&uart1.hdmatx_);
@@ -95,4 +78,9 @@ void USART1_IRQHandler(void) {
 
 void USART2_IRQHandler(void) {
   HAL_UART_IRQHandler(&uart2.huart_);
+}
+
+void TIM7_DAC2_IRQHandler(void) {
+  extern TIM_HandleTypeDef htim7;
+  HAL_TIM_IRQHandler(&htim7);
 }
