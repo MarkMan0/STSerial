@@ -31,8 +31,13 @@ void UART_DMA::send(const void* buff, size_t sz) {
 
 void UART_DMA::flush() {
   while (uint16_t n = transmit_buff_.get_num_occupied_continuous()) {
-    HAL_UART_Transmit_DMA(&huart_, const_cast<uint8_t*>(&transmit_buff_.peek()), n);
-    transmit_buff_.pop(n);
+    for (int i = 0; i < 20; ++i) {
+      if (HAL_OK == HAL_UART_Transmit_DMA(&huart_, const_cast<uint8_t*>(&transmit_buff_.peek()), n)) {
+        transmit_buff_.pop(n);
+        break;
+      }
+      HAL_Delay(10);
+    }
   }
 }
 
