@@ -109,6 +109,10 @@ public:
     return ret;
   }
 
+  uint16_t size() const {
+    return N;
+  }
+
   void reset() {
     is_full_ = false;
     head_ = 0;

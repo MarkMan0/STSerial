@@ -27,40 +27,11 @@ static void led_task(void*) {
   }
 }
 
-constexpr osThreadAttr_t led_task_attr{ .name = "Led task",
-                                        .attr_bits = 0,
-                                        .cb_mem = nullptr,
-                                        .cb_size = 0,
-                                        .stack_mem = nullptr,
-                                        .stack_size = 128 * 4,
-                                        .priority = osPriorityNormal,
-                                        .tz_module = 0,
-                                        .reserved = 0 };
-
-
-constexpr osThreadAttr_t uart2_task_attr{ .name = "UART2 task",
-                                          .attr_bits = 0,
-                                          .cb_mem = nullptr,
-                                          .cb_size = 0,
-                                          .stack_mem = nullptr,
-                                          .stack_size = 128 * 4,
-                                          .priority = osPriorityAboveNormal1,
-                                          .tz_module = 0,
-                                          .reserved = 0 };
-constexpr osThreadAttr_t uart1_task_attr{ .name = "UART1 task",
-                                          .attr_bits = 0,
-                                          .cb_mem = nullptr,
-                                          .cb_size = 0,
-                                          .stack_mem = nullptr,
-                                          .stack_size = 128 * 4,
-                                          .priority = osPriorityNormal1,
-                                          .tz_module = 0,
-                                          .reserved = 0 };
-
 static void uart2_task(void*) {
   static std::array<char, 40> str{};
+  uart2.send("Hello from uart 2");
   while (1) {
-    uart2.tick();
+    xTaskNotifyWait(0, UINT32_MAX, nullptr, portMAX_DELAY);
     if (uart2.available()) {
       str[0] = '\0';
       strncat(str.data(), "Got 2: \"", str.size() - 1);
@@ -78,14 +49,14 @@ static void uart2_task(void*) {
       uart1.send(str.data());
       uart2.send(str.data());
     }
-    osDelay(pdMS_TO_TICKS(100));
   }
 }
 
 static void uart1_task(void*) {
   static std::array<char, 40> str{};
+  uart2.send("Hello from uart 1");
   while (1) {
-    uart1.tick();
+    xTaskNotifyWait(0, UINT32_MAX, nullptr, portMAX_DELAY);
     if (uart1.available()) {
       str[0] = '\0';
       strncat(str.data(), "Got 1: \"", str.size() - 1);
@@ -102,8 +73,6 @@ static void uart1_task(void*) {
 
       uart2.send(str.data());
     }
-
-    osDelay(pdMS_TO_TICKS(100));
   }
 }
 
@@ -111,15 +80,20 @@ int main(void) {
   HAL_Init();
   SystemClock_Config();
 
+  osKernelInitialize();
+
   uart2.begin(115200);
   uart1.begin(115200);
 
 
-  osKernelInitialize();
 
-  osThreadNew(led_task, nullptr, &led_task_attr);
-  osThreadNew(uart1_task, nullptr, &uart1_task_attr);
-  osThreadNew(uart2_task, nullptr, &uart2_task_attr);
+  TaskHandle_t led_handle, uart1_handle, uart2_handle;
+  xTaskCreate(led_task, "blink task", 64, nullptr, osPriorityLow1, &led_handle);
+  xTaskCreate(uart2_task, "uart2 RX task", 64, nullptr, osPriorityLow1, &uart2_handle);
+  xTaskCreate(uart1_task, "uart1 RX task", 64, nullptr, osPriorityLow1, &uart1_handle);
+
+  uart2.register_task_to_notify_on_rx(uart2_handle);
+  uart1.register_task_to_notify_on_rx(uart1_handle);
 
   osKernelStart();
   while (1) {

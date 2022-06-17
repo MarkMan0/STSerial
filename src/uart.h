@@ -5,6 +5,13 @@
 #include <array>
 #include <cstring>
 #include <cstdarg>
+#include "FreeRTOS.h"
+#include "semphr.h"
+#include "task.h"
+#include "cmsis_os2.h"
+
+
+
 
 
 /**
@@ -21,20 +28,23 @@ public:
 
   UART_DMA(hw_init_fcn_t*, isr_enable_fcn_t*);  ///< Provide the necessary callbacks
 
-  void begin(uint32_t baud);  ///< Call once only, to init the hardware
+  void begin(uint32_t baud);  ///< Call once only, to init the hardware and start tasks
 
   /// @brief Return the number of bytes available for reading
   uint16_t available() const {
     return receive_buff_.get_num_occupied();
   }
 
+  /// @name getters from buffer
+  /// @{
+
   /// @brief Return and pop one byte from the RX buffer
-  uint8_t get_one() {
-    return receive_buff_.pop();
-  }
+  uint8_t get_one();
 
   /// @brief Reads at max @p n bytes into @p dest. @return The number of bytes read
   uint16_t get_n(uint8_t* dest, uint16_t n);
+
+  /// @}
 
   /** @name Immediate transmission
    *  @details Messages are sent out immediately
@@ -78,11 +88,23 @@ public:
 
   void reset_buffers();  ///< Resets both buffers so head=tail=0
 
+  /// @brief This task will be notified if anything is received
+  void register_task_to_notify_on_rx(TaskHandle_t t) {
+    rx_notify_task_ = t;
+  }
+
   UART_HandleTypeDef huart_;
   DMA_HandleTypeDef hdmarx_, hdmatx_;
 
 private:
   uint16_t vprintf(const char* fmt, va_list args);
+
+  SemaphoreHandle_t rx_buff_mtx_,  ///< Mutex to lock the transmit buffer
+      tx_buff_mtx_;                ///< Mutex to lock the receive buffer
+
+  TaskHandle_t tx_task_;  ///< Handle to task that calls tick()
+
+  TaskHandle_t rx_notify_task_{ nullptr };  ///< Task that will be notified on RX
 
   uint32_t baudrate_{ 115200 };
   uint16_t last_rxdma_pos_{ 0 };           ///< Used in rx event callback to track DMA
@@ -97,6 +119,11 @@ private:
 public:
   /** @brief Generic RX event callback */
   void rx_event_cb(UART_HandleTypeDef*, uint16_t);
+
+  /// @brief calls tick on UART_DMA passed as argument
+  /// @param ptr pointer to UART_DMA instance
+  static void generic_tx_task(void* ptr);
+
 
   /** @name UART2 init and callback functions */
   ///@{
